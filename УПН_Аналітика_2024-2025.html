@@ -1,0 +1,1399 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>УПН — Аналітика 2024–2025</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --forest: #1a3a2a;
+    --moss: #2d6a4f;
+    --fern: #40916c;
+    --sage: #74c69d;
+    --mist: #b7e4c7;
+    --cream: #f4f1e8;
+    --amber: #d4a017;
+    --rust: #c85a17;
+    --night: #0d1f17;
+    --paper: #faf8f3;
+    --ink: #1c2b22;
+    --light-border: rgba(45,106,79,0.15);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'IBM Plex Sans', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  .header {
+    background: var(--forest);
+    color: var(--cream);
+    padding: 3rem 2rem 2.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 60px,
+      rgba(64,145,108,0.06) 60px,
+      rgba(64,145,108,0.06) 61px
+    );
+  }
+  .header-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    position: relative;
+  }
+  .header-badge {
+    display: inline-block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    background: var(--fern);
+    color: var(--cream);
+    padding: 0.3rem 0.8rem;
+    border-radius: 2px;
+    margin-bottom: 1rem;
+  }
+  .header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 900;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+  .header h1 span {
+    color: var(--sage);
+  }
+  .header-sub {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--mist);
+    margin-top: 0.75rem;
+    letter-spacing: 0.05em;
+  }
+
+  /* NAV TABS */
+  .nav-tabs {
+    background: var(--night);
+    padding: 0 2rem;
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .nav-tabs::-webkit-scrollbar { display: none; }
+  .nav-tab {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--sage);
+    padding: 1rem 1.5rem;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    white-space: nowrap;
+    transition: all 0.2s;
+    background: none;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+  }
+  .nav-tab:hover { color: var(--mist); }
+  .nav-tab.active {
+    color: var(--cream);
+    border-bottom-color: var(--amber);
+  }
+
+  /* CONTENT */
+  .section {
+    display: none;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 2.5rem 2rem;
+    animation: fadeIn 0.4s ease;
+  }
+  .section.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+  /* KPI CARDS */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2.5rem;
+  }
+  .kpi-card {
+    background: white;
+    border: 1px solid var(--light-border);
+    border-radius: 6px;
+    padding: 1.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .kpi-card::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--fern);
+  }
+  .kpi-card.amber::after { background: var(--amber); }
+  .kpi-card.rust::after { background: var(--rust); }
+  .kpi-card.sage::after { background: var(--sage); }
+  .kpi-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--moss);
+    margin-bottom: 0.6rem;
+  }
+  .kpi-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--forest);
+    line-height: 1;
+  }
+  .kpi-delta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    margin-top: 0.5rem;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.15rem 0.5rem;
+    border-radius: 2px;
+  }
+  .delta-up { background: #ecfdf5; color: #065f46; }
+  .delta-down { background: #fef2f2; color: #991b1b; }
+  .delta-neutral { background: #f3f4f6; color: #374151; }
+
+  /* SECTION TITLE */
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--forest);
+    margin-bottom: 0.3rem;
+  }
+  .section-desc {
+    font-size: 0.88rem;
+    color: #5a7a65;
+    margin-bottom: 2rem;
+    line-height: 1.6;
+  }
+
+  /* CHART GRID */
+  .chart-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  .chart-card {
+    background: white;
+    border: 1px solid var(--light-border);
+    border-radius: 6px;
+    padding: 1.5rem;
+  }
+  .chart-card.full { grid-column: 1 / -1; }
+  .chart-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--moss);
+    margin-bottom: 1.2rem;
+    padding-bottom: 0.8rem;
+    border-bottom: 1px solid var(--light-border);
+  }
+  .chart-wrap {
+    position: relative;
+    height: 300px;
+  }
+  .chart-wrap.tall { height: 380px; }
+
+  /* INSIGHT BOX */
+  .insight-box {
+    background: linear-gradient(135deg, var(--forest), var(--moss));
+    color: var(--cream);
+    border-radius: 6px;
+    padding: 1.75rem 2rem;
+    margin-bottom: 1.5rem;
+  }
+  .insight-box h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    margin-bottom: 0.75rem;
+    color: var(--sage);
+  }
+  .insight-list {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 0.6rem;
+  }
+  .insight-list li {
+    font-size: 0.85rem;
+    line-height: 1.5;
+    padding-left: 1.2rem;
+    position: relative;
+  }
+  .insight-list li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: var(--amber);
+  }
+
+  /* TABLE */
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+  }
+  .data-table th {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--moss);
+    padding: 0.75rem 1rem;
+    border-bottom: 2px solid var(--mist);
+    text-align: left;
+    background: #f9fafb;
+  }
+  .data-table td {
+    padding: 0.7rem 1rem;
+    border-bottom: 1px solid var(--light-border);
+    color: var(--ink);
+  }
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table tr:hover td { background: #f0faf4; }
+  .bar-mini {
+    display: inline-block;
+    height: 6px;
+    background: var(--fern);
+    border-radius: 3px;
+    vertical-align: middle;
+    margin-left: 0.5rem;
+    transition: width 0.8s ease;
+  }
+  .tag {
+    display: inline-block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 2px;
+    background: #e8f5ee;
+    color: var(--moss);
+  }
+  .tag.up { background: #ecfdf5; color: #065f46; }
+  .tag.down { background: #fef2f2; color: #991b1b; }
+
+  /* FOOTER */
+  .footer {
+    background: var(--forest);
+    color: var(--sage);
+    text-align: center;
+    padding: 1.5rem;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    margin-top: 3rem;
+  }
+
+  /* SOCIAL BLOCK */
+  .social-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+  .social-card {
+    background: white;
+    border: 1px solid var(--light-border);
+    border-radius: 6px;
+    padding: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  .social-icon {
+    font-size: 2rem;
+    width: 3rem;
+    text-align: center;
+  }
+  .social-val {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--forest);
+    line-height: 1;
+  }
+  .social-lbl {
+    font-size: 0.78rem;
+    color: #5a7a65;
+    margin-top: 0.2rem;
+  }
+
+  @media (max-width: 640px) {
+    .chart-grid { grid-template-columns: 1fr; }
+    .chart-wrap { height: 260px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <div class="header-badge">Звіт УПН · Виховники</div>
+    <h1>Новацтво в Україні<br><span>2024 → 2025</span></h1>
+    <div class="header-sub">Аналітичний дайджест · Підготовлено на основі даних реєстру УПН</div>
+  </div>
+</div>
+
+<nav class="nav-tabs">
+  <button class="nav-tab active" onclick="showTab('overview')">Загальна динаміка</button>
+  <button class="nav-tab" onclick="showTab('regions')">По округах</button>
+  <button class="nav-tab" onclick="showTab('degrees')">Ступені</button>
+  <button class="nav-tab" onclick="showTab('leaders')">Виховники</button>
+  <button class="nav-tab" onclick="showTab('social')">Соціальний профіль</button>
+  <button class="nav-tab" onclick="showTab('details')">Деталі</button>
+</nav>
+
+<!-- TAB 1: OVERVIEW -->
+<div class="section active" id="tab-overview">
+
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-label">Новаків 2024</div>
+      <div class="kpi-value">2 435</div>
+    </div>
+    <div class="kpi-card amber">
+      <div class="kpi-label">Новаків 2025</div>
+      <div class="kpi-value">2 823</div>
+      <div class="kpi-delta delta-up">▲ +388 / +16%</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Виховників 2024</div>
+      <div class="kpi-value">288</div>
+    </div>
+    <div class="kpi-card amber">
+      <div class="kpi-label">Виховників 2025</div>
+      <div class="kpi-value">329</div>
+      <div class="kpi-delta delta-up">▲ +41 / +14%</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Гнізд (активних)</div>
+      <div class="kpi-value">81</div>
+      <div class="kpi-delta delta-neutral">74 активних (91%)</div>
+    </div>
+    <div class="kpi-card sage">
+      <div class="kpi-label">Самостійних роїв (активних)</div>
+      <div class="kpi-value">74</div>
+      <div class="kpi-delta delta-neutral">59 активних (80%)</div>
+    </div>
+  </div>
+
+  <div class="insight-box">
+    <h3>🌿 Ключові тенденції 2024–2025</h3>
+    <ul class="insight-list">
+      <li>УПН зросла на <strong>388 новаків (+16%)</strong> — найбільший приріст за останні роки</li>
+      <li>Залучено <strong>1 395 нових дітей</strong>, вибуло <strong>1 007</strong> — ротація близько 40%</li>
+      <li><strong>682 дитини</strong> перейшли в УПЮ — природний рух крізь вікові рівні</li>
+      <li>Кількість виховників зросла на <strong>14%</strong>, навантаження залишається стабільним (≈8.6 дітей/виховник)</li>
+      <li>Новацтво охоплює <strong>22 округи</strong> — понад половину регіонів України</li>
+      <li><strong>81 гніздо</strong> і <strong>74 самостійних рої (СР)</strong> — майже порівну структур, але гніздо втричі більше за СР (≈31 vs ≈9 дітей)</li>
+      <li>Неактивних СР більше: <strong>15 з 74 (20%)</strong> проти <strong>7 з 81 (9%)</strong> гнізд — потребують підтримки</li>
+    </ul>
+  </div>
+
+  <div class="chart-grid">
+    <div class="chart-card">
+      <div class="chart-title">Загальна кількість новаків</div>
+      <div class="chart-wrap">
+        <canvas id="chartMain"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Рух дітей у 2025</div>
+      <div class="chart-wrap">
+        <canvas id="chartFlow"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Виховники: кількість та ролі</div>
+      <div class="chart-wrap">
+        <canvas id="chartLeadersOverview"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Гнізда vs Самостійні рої — структури і діти</div>
+      <div class="chart-wrap">
+        <canvas id="chartNests"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="chart-card" style="margin-top:0">
+    <div class="chart-title">Середній розмір структури (2025)</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;padding:1rem 0">
+      <div style="text-align:center">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--moss);margin-bottom:0.5rem">Гніздо</div>
+        <div style="font-family:'Playfair Display',serif;font-size:3rem;font-weight:700;color:var(--forest)">31.4</div>
+        <div style="font-size:0.8rem;color:#5a7a65">дитини в середньому</div>
+      </div>
+      <div style="text-align:center">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--moss);margin-bottom:0.5rem">Самостійний рій (СР)</div>
+        <div style="font-family:'Playfair Display',serif;font-size:3rem;font-weight:700;color:var(--amber)">8.5</div>
+        <div style="font-size:0.8rem;color:#5a7a65">дитини в середньому · ріст +44% за рік</div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="section" id="tab-regions">
+  <div class="section-title">По округах</div>
+  <div class="section-desc">Розподіл новаків і виховників за округами України у 2024 та 2025 роках.</div>
+
+  <!-- MAP -->
+  <div class="chart-card full" style="margin-bottom:1.5rem">
+    <div class="chart-title">Карта новацтва по містах (2025) — розмір кола = кількість новаків</div>
+    <div style="width:100%;border-radius:4px;overflow:hidden;">
+      <svg viewBox="0 0 860 520" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;background:#e8f4f0;">
+  <defs>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="1" dy="1" stdDeviation="2" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+  <!-- Sea background -->
+  <rect width="860" height="520" fill="#dceef5"/>
+  <!-- Ukraine fill -->
+  <path d="M 35.4,75.4 L 98.5,74.9 L 132.9,60.6 L 193.7,59.4 L 242.2,67.4 L 282.8,68.0 L 329.9,80.6 L 388.6,80.0 L 429.6,73.1 L 474.5,35.4 L 546.8,33.1 L 575.5,66.9 L 615.6,78.9 L 649.1,96.0 L 744.3,109.7 L 786.2,149.7 L 826.3,192.0 L 832.1,249.1 L 810.9,292.0 L 768.6,333.7 L 746.5,334.3 L 717.0,327.4 L 695.4,325.7 L 674.2,356.0 L 605.9,401.1 L 546.4,386.9 L 534.0,419.4 L 491.3,431.4 L 433.5,425.1 L 389.0,415.4 L 344.0,430.3 L 336.1,430.3 L 318.9,422.9 L 298.6,412.0 L 294.2,392.6 L 306.6,373.1 L 315.4,370.9 L 339.6,341.7 L 347.1,324.6 L 346.2,291.4 L 325.5,276.0 L 271.3,256.0 L 232.1,268.6 L 212.7,261.7 L 193.3,286.3 L 156.2,298.9 L 132.4,284.6 L 98.0,282.9 L 67.2,262.9 L 35.4,260.0 L 32.3,222.3 L 53.5,220.6 L 68.5,201.1 L 61.9,158.3 L 83.5,147.4 L 105.1,146.9 L 119.6,113.7 L 100.7,93.1 L 84.8,74.9 L 35.4,75.4 Z" fill="#f0ebe0" stroke="#b0c4b0" stroke-width="1.8" filter="url(#shadow)"/>
+  <!-- Grid lines faint -->
+  <!-- Circles -->
+  <circle cx="404.4" cy="142.9" r="36.0" fill="#1a3a2a" opacity="0.85" stroke="white" stroke-width="1.5"/><circle cx="118.3" cy="177.7" r="28.6" fill="#1a3a2a" opacity="0.85" stroke="white" stroke-width="1.5"/><circle cx="148.3" cy="230.3" r="27.4" fill="#1a3a2a" opacity="0.85" stroke="white" stroke-width="1.5"/><circle cx="187.1" cy="194.3" r="15.3" fill="#2d6a4f" opacity="0.85" stroke="white" stroke-width="1.5"/><circle cx="230.7" cy="244.0" r="14.0" fill="#2d6a4f" opacity="0.85" stroke="white" stroke-width="1.5"/><circle cx="216.2" cy="133.1" r="13.4" fill="#2d6a4f" opacity="0.85" stroke="white" stroke-width="1.5"/><circle cx="392.5" cy="138.3" r="17.6" fill="#2d6a4f" opacity="0.85" stroke="white" stroke-width="1.5"/><circle cx="41.6" cy="247.4" r="11.8" fill="#40916c" opacity="0.85" stroke="white" stroke-width="1.5"/><circle cx="314.1" cy="212.6" r="11.8" fill="#40916c" opacity="0.85" stroke="white" stroke-width="1.5"/><circle cx="656.2" cy="169.1" r="11.1" fill="#40916c" opacity="0.85" stroke="white" stroke-width="1.5"/><circle cx="110.4" cy="210.9" r="10.9" fill="#40916c" opacity="0.85" stroke="white" stroke-width="1.5"/><circle cx="322.4" cy="154.3" r="10.3" fill="#40916c" opacity="0.85" stroke="white" stroke-width="1.5"/><circle cx="202.5" cy="266.3" r="10.0" fill="#40916c" opacity="0.85" stroke="white" stroke-width="1.5"/><circle cx="531.4" cy="288.0" r="9.9" fill="#40916c" opacity="0.85" stroke="white" stroke-width="1.5"/><circle cx="95.4" cy="205.7" r="9.5" fill="#40916c" opacity="0.85" stroke="white" stroke-width="1.5"/><circle cx="158.9" cy="200.0" r="9.1" fill="#40916c" opacity="0.85" stroke="white" stroke-width="1.5"/><circle cx="162.8" cy="252.6" r="8.8" fill="#40916c" opacity="0.85" stroke="white" stroke-width="1.5"/><circle cx="225.0" cy="118.3" r="8.7" fill="#40916c" opacity="0.85" stroke="white" stroke-width="1.5"/><circle cx="604.1" cy="256.6" r="8.7" fill="#40916c" opacity="0.85" stroke="white" stroke-width="1.5"/><circle cx="413.2" cy="369.7" r="7.7" fill="#74c69d" opacity="0.85" stroke="white" stroke-width="1.5"/><circle cx="175.6" cy="125.7" r="7.2" fill="#74c69d" opacity="0.85" stroke="white" stroke-width="1.5"/><circle cx="472.3" cy="200.6" r="6.8" fill="#74c69d" opacity="0.85" stroke="white" stroke-width="1.5"/><circle cx="438.4" cy="82.9" r="5.4" fill="#74c69d" opacity="0.85" stroke="white" stroke-width="1.5"/><circle cx="469.2" cy="341.1" r="5.4" fill="#74c69d" opacity="0.85" stroke="white" stroke-width="1.5"/><circle cx="193.7" cy="144.6" r="6.1" fill="#74c69d" opacity="0.85" stroke="white" stroke-width="1.5"/><circle cx="522.6" cy="97.7" r="5.6" fill="#74c69d" opacity="0.85" stroke="white" stroke-width="1.5"/><circle cx="60.6" cy="257.7" r="5.6" fill="#74c69d" opacity="0.85" stroke="white" stroke-width="1.5"/><circle cx="608.1" cy="292.0" r="5.0" fill="#74c69d" opacity="0.85" stroke="white" stroke-width="1.5"/><circle cx="133.3" cy="222.9" r="9.3" fill="#40916c" opacity="0.85" stroke="white" stroke-width="1.5"/>
+  <!-- Labels -->
+  <text x="404.4" y="125.9" text-anchor="middle" font-size="12" font-weight="bold" fill="#1a3a2a" font-family="IBM Plex Sans,sans-serif">Київ</text><text x="404.4" y="113.9" text-anchor="middle" font-size="9" fill="#2d6a4f" font-family="IBM Plex Mono,monospace">530</text><text x="118.3" y="162.7" text-anchor="middle" font-size="12" font-weight="bold" fill="#1a3a2a" font-family="IBM Plex Sans,sans-serif">Львів</text><text x="118.3" y="150.7" text-anchor="middle" font-size="9" fill="#2d6a4f" font-family="IBM Plex Mono,monospace">335</text><text x="148.3" y="215.3" text-anchor="middle" font-size="12" font-weight="bold" fill="#1a3a2a" font-family="IBM Plex Sans,sans-serif">Івано-Фр.</text><text x="148.3" y="203.3" text-anchor="middle" font-size="9" fill="#2d6a4f" font-family="IBM Plex Mono,monospace">306</text><text x="189.1" y="223.62146108604924" text-anchor="start" font-size="11" font-weight="normal" fill="#1a3a2a" font-family="IBM Plex Sans,sans-serif">Тернопіль</text><text x="189.1" y="234.62146108604924" text-anchor="start" font-size="9" fill="#2d6a4f" font-family="IBM Plex Mono,monospace">96</text><text x="230.7" y="270.9865164179446" text-anchor="middle" font-size="11" font-weight="normal" fill="#1a3a2a" font-family="IBM Plex Sans,sans-serif">Кам'янець</text><text x="230.7" y="281.9865164179446" text-anchor="middle" font-size="9" fill="#2d6a4f" font-family="IBM Plex Mono,monospace">80</text><text x="216.2" y="159.4606010485067" text-anchor="middle" font-size="11" font-weight="normal" fill="#1a3a2a" font-family="IBM Plex Sans,sans-serif">Рівне</text><text x="216.2" y="170.4606010485067" text-anchor="middle" font-size="9" fill="#2d6a4f" font-family="IBM Plex Mono,monospace">73</text><text x="410.5" y="135.3" text-anchor="start" font-size="11" font-weight="bold" fill="#1a3a2a" font-family="IBM Plex Sans,sans-serif">Буча/Ірпінь</text><text x="410.5" y="123.30000000000001" text-anchor="start" font-size="9" fill="#2d6a4f" font-family="IBM Plex Mono,monospace">126</text><text x="41.6" y="271.2059786580983" text-anchor="middle" font-size="11" font-weight="normal" fill="#1a3a2a" font-family="IBM Plex Sans,sans-serif">Ужгород</text><text x="41.6" y="282.2059786580983" text-anchor="middle" font-size="9" fill="#2d6a4f" font-family="IBM Plex Mono,monospace">57</text><text x="314.1" y="237.40597865809826" text-anchor="middle" font-size="11" font-weight="normal" fill="#1a3a2a" font-family="IBM Plex Sans,sans-serif">Вінниця</text><text x="314.1" y="248.40597865809826" text-anchor="middle" font-size="9" fill="#2d6a4f" font-family="IBM Plex Mono,monospace">57</text><text x="656.2" y="192.15731210301112" text-anchor="middle" font-size="11" font-weight="normal" fill="#1a3a2a" font-family="IBM Plex Sans,sans-serif">Харків</text><text x="656.2" y="203.15731210301112" text-anchor="middle" font-size="9" fill="#2d6a4f" font-family="IBM Plex Mono,monospace">50</text><text x="108.4" y="233.84618051762936" text-anchor="end" font-size="10" font-weight="normal" fill="#1a3a2a" font-family="IBM Plex Sans,sans-serif">Стрий</text><text x="108.4" y="244.84618051762936" text-anchor="end" font-size="9" fill="#2d6a4f" font-family="IBM Plex Mono,monospace">49</text><text x="322.4" y="176.55412940289526" text-anchor="middle" font-size="10" font-weight="normal" fill="#1a3a2a" font-family="IBM Plex Sans,sans-serif">Житомир</text><text x="322.4" y="187.55412940289526" text-anchor="middle" font-size="9" fill="#2d6a4f" font-family="IBM Plex Mono,monospace">43</text><text x="202.5" y="288.3128219685354" text-anchor="middle" font-size="10" font-weight="normal" fill="#1a3a2a" font-family="IBM Plex Sans,sans-serif">Чернівці</text><text x="202.5" y="299.3128219685354" text-anchor="middle" font-size="9" fill="#2d6a4f" font-family="IBM Plex Mono,monospace">41</text><text x="531.4" y="309.8899606043056" text-anchor="middle" font-size="10" font-weight="normal" fill="#1a3a2a" font-family="IBM Plex Sans,sans-serif">Кривий Ріг</text><text x="531.4" y="320.8899606043056" text-anchor="middle" font-size="9" fill="#2d6a4f" font-family="IBM Plex Mono,monospace">40</text><text x="93.4" y="227.21185952893086" text-anchor="end" font-size="10" font-weight="normal" fill="#1a3a2a" font-family="IBM Plex Sans,sans-serif">Дрогобич</text><text x="93.4" y="238.21185952893086" text-anchor="end" font-size="9" fill="#2d6a4f" font-family="IBM Plex Mono,monospace">37</text><text x="158.9" y="220.11809314722709" text-anchor="middle" font-size="10" font-weight="normal" fill="#1a3a2a" font-family="IBM Plex Sans,sans-serif">Бережани</text><text x="158.9" y="231.11809314722709" text-anchor="middle" font-size="9" fill="#2d6a4f" font-family="IBM Plex Mono,monospace">34</text><text x="162.8" y="272.4458496824089" text-anchor="middle" font-size="10" font-weight="normal" fill="#1a3a2a" font-family="IBM Plex Sans,sans-serif">Коломия</text><text x="162.8" y="283.4458496824089" text-anchor="middle" font-size="9" fill="#2d6a4f" font-family="IBM Plex Mono,monospace">32</text><text x="225.0" y="138.00653625645157" text-anchor="middle" font-size="10" font-weight="normal" fill="#1a3a2a" font-family="IBM Plex Sans,sans-serif">Костопіль</text><text x="225.0" y="149.00653625645157" text-anchor="middle" font-size="9" fill="#2d6a4f" font-family="IBM Plex Mono,monospace">31</text><text x="604.1" y="276.3065362564516" text-anchor="middle" font-size="10" font-weight="normal" fill="#1a3a2a" font-family="IBM Plex Sans,sans-serif">Дніпро</text><text x="604.1" y="287.3065362564516" text-anchor="middle" font-size="9" fill="#2d6a4f" font-family="IBM Plex Mono,monospace">31</text><text x="413.2" y="388.3607305430246" text-anchor="middle" font-size="10" font-weight="normal" fill="#1a3a2a" font-family="IBM Plex Sans,sans-serif">Одеса</text><text x="413.2" y="399.3607305430246" text-anchor="middle" font-size="9" fill="#2d6a4f" font-family="IBM Plex Mono,monospace">24</text><text x="175.6" y="143.8659572560982" text-anchor="middle" font-size="10" font-weight="normal" fill="#1a3a2a" font-family="IBM Plex Sans,sans-serif">Луцьк</text><text x="175.6" y="154.8659572560982" text-anchor="middle" font-size="9" fill="#2d6a4f" font-family="IBM Plex Mono,monospace">21</text><text x="472.3" y="218.41618495630001" text-anchor="middle" font-size="10" font-weight="normal" fill="#1a3a2a" font-family="IBM Plex Sans,sans-serif">Черкаси</text><text x="472.3" y="229.41618495630001" text-anchor="middle" font-size="9" fill="#2d6a4f" font-family="IBM Plex Mono,monospace">19</text><text x="438.4" y="98.31695451581561" text-anchor="middle" font-size="10" font-weight="normal" fill="#1a3a2a" font-family="IBM Plex Sans,sans-serif">Чернігів</text><text x="438.4" y="109.31695451581561" text-anchor="middle" font-size="9" fill="#2d6a4f" font-family="IBM Plex Mono,monospace">12</text><text x="469.2" y="356.51695451581566" text-anchor="middle" font-size="10" font-weight="normal" fill="#1a3a2a" font-family="IBM Plex Sans,sans-serif">Миколаїв</text><text x="469.2" y="367.51695451581566" text-anchor="middle" font-size="9" fill="#2d6a4f" font-family="IBM Plex Mono,monospace">12</text><text x="193.7" y="160.65633926419406" text-anchor="middle" font-size="10" font-weight="normal" fill="#1a3a2a" font-family="IBM Plex Sans,sans-serif">Дубно</text><text x="193.7" y="171.65633926419406" text-anchor="middle" font-size="9" fill="#2d6a4f" font-family="IBM Plex Mono,monospace">15</text><text x="522.6" y="113.33814501811395" text-anchor="middle" font-size="10" font-weight="normal" fill="#1a3a2a" font-family="IBM Plex Sans,sans-serif">Конотоп</text><text x="522.6" y="124.33814501811395" text-anchor="middle" font-size="9" fill="#2d6a4f" font-family="IBM Plex Mono,monospace">13</text><text x="60.6" y="273.33814501811395" text-anchor="middle" font-size="10" font-weight="normal" fill="#1a3a2a" font-family="IBM Plex Sans,sans-serif">Мукачево</text><text x="60.6" y="284.33814501811395" text-anchor="middle" font-size="9" fill="#2d6a4f" font-family="IBM Plex Mono,monospace">13</text><text x="608.1" y="306.0" text-anchor="middle" font-size="10" font-weight="normal" fill="#1a3a2a" font-family="IBM Plex Sans,sans-serif">Запоріжжя</text><text x="608.1" y="317.0" text-anchor="middle" font-size="9" fill="#2d6a4f" font-family="IBM Plex Mono,monospace">7</text><text x="133.3" y="242.15121103750084" text-anchor="middle" font-size="10" font-weight="normal" fill="#1a3a2a" font-family="IBM Plex Sans,sans-serif">Калуш</text><text x="133.3" y="253.15121103750084" text-anchor="middle" font-size="9" fill="#2d6a4f" font-family="IBM Plex Mono,monospace">35</text>
+  <!-- Legend -->
+  <g transform="translate(660,370)">
+    <rect x="0" y="0" width="178" height="130" rx="5" fill="white" opacity="0.92" stroke="#d0d8d0" stroke-width="1"/>
+    <text x="10" y="18" font-size="10" font-weight="bold" fill="#1a3a2a" font-family="IBM Plex Sans,sans-serif">Новаків у місті (2025)</text>
+    <circle cx="20" cy="38" r="13" fill="#1a3a2a" opacity="0.85"/>
+    <text x="40" y="42" font-size="10" fill="#333" font-family="IBM Plex Sans,sans-serif">300+ новаків</text>
+    <circle cx="20" cy="65" r="9" fill="#2d6a4f" opacity="0.85"/>
+    <text x="40" y="69" font-size="10" fill="#333" font-family="IBM Plex Sans,sans-serif">60–299 новаків</text>
+    <circle cx="20" cy="88" r="7" fill="#40916c" opacity="0.85"/>
+    <text x="40" y="92" font-size="10" fill="#333" font-family="IBM Plex Sans,sans-serif">25–59 новаків</text>
+    <circle cx="20" cy="108" r="5" fill="#74c69d" opacity="0.85"/>
+    <text x="40" y="112" font-size="10" fill="#333" font-family="IBM Plex Sans,sans-serif">до 25 новаків</text>
+  </g>
+</svg>
+    </div>
+  </div>
+
+  <div class="chart-grid">
+    <div class="chart-card full">
+      <div class="chart-title">Кількість новаків по округах — 2024 vs 2025</div>
+      <div class="chart-wrap tall">
+        <canvas id="chartRegions"></canvas>
+      </div>
+    </div>
+    <div class="chart-card full">
+      <div class="chart-title">Новаки по округах: Гнізда vs Самостійні рої (2025)</div>
+      <div class="chart-wrap tall">
+        <canvas id="chartRegionsSR"></canvas>
+      </div>
+    </div>
+    <div class="chart-card full">
+      <div class="chart-title">Кількість виховників по округах — 2024 vs 2025</div>
+      <div class="chart-wrap tall">
+        <canvas id="chartRegionsLeaders"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-title">Приріст новаків по округах (% до 2024)</div>
+    <table class="data-table" id="regionTable">
+      <thead>
+        <tr>
+          <th>Округа</th>
+          <th>2024</th>
+          <th>2025</th>
+          <th>Зміна</th>
+          <th>Приріст</th>
+        </tr>
+      </thead>
+      <tbody id="regionTableBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- TAB 3: DEGREES -->
+<div class="section" id="tab-degrees">
+  <div class="section-title">Ступені новаків</div>
+  <div class="section-desc">Розподіл за пластовими ступенями дозволяє відстежити зрілість гнізд та рівень залученості дітей.</div>
+
+  <div class="chart-grid">
+    <div class="chart-card">
+      <div class="chart-title">Ступені 2024</div>
+      <div class="chart-wrap">
+        <canvas id="chartDeg24"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Ступені 2025</div>
+      <div class="chart-wrap">
+        <canvas id="chartDeg25"></canvas>
+      </div>
+    </div>
+    <div class="chart-card full">
+      <div class="chart-title">Порівняння ступенів 2024 vs 2025</div>
+      <div class="chart-wrap">
+        <canvas id="chartDegCompare"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="insight-box">
+    <h3>📊 Що говорять ступені</h3>
+    <ul class="insight-list">
+      <li><strong>Прихильники виросли вдвічі</strong> (+375): у 2025 стали найчисленнішою групою — приплив нових дітей</li>
+      <li><strong>Обережне орля</strong> зросло на +37 (521→558): активна початкова ланка</li>
+      <li><strong>Бистре орля</strong> скоротилось з 179 до 93: діти переходять у старші ступені або УПЮ</li>
+      <li><strong>Неіменовані</strong> зменшились: більше дітей проходять іменування — позитивна тенденція</li>
+      <li><strong>Сильне орля</strong> зросло на +159 — помітне «дозрівання» серередини гнізд</li>
+    </ul>
+  </div>
+</div>
+
+<!-- TAB 4: LEADERS -->
+<div class="section" id="tab-leaders">
+  <div class="section-title">Виховники</div>
+  <div class="section-desc">Кількість, ролі та пластовий ступінь виховників — основа якості роботи гнізд.</div>
+
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-label">Гніздових 2024</div>
+      <div class="kpi-value">74</div>
+    </div>
+    <div class="kpi-card amber">
+      <div class="kpi-label">Гніздових 2025</div>
+      <div class="kpi-value">73</div>
+      <div class="kpi-delta delta-neutral">= стабільно</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Братчиків/сестричок 2024</div>
+      <div class="kpi-value">214</div>
+    </div>
+    <div class="kpi-card amber">
+      <div class="kpi-label">Братчиків/сестричок 2025</div>
+      <div class="kpi-value">256</div>
+      <div class="kpi-delta delta-up">▲ +42 / +20%</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Дітей на виховника 2024</div>
+      <div class="kpi-value">8.5</div>
+    </div>
+    <div class="kpi-card sage">
+      <div class="kpi-label">Дітей на виховника 2025</div>
+      <div class="kpi-value">8.6</div>
+      <div class="kpi-delta delta-neutral">≈ стабільно</div>
+    </div>
+  </div>
+
+  <div class="chart-grid">
+    <div class="chart-card">
+      <div class="chart-title">Ролі виховників — 2024 vs 2025</div>
+      <div class="chart-wrap">
+        <canvas id="chartRoles"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Пластовий ступінь виховників 2025</div>
+      <div class="chart-wrap">
+        <canvas id="chartLeaderDeg"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="insight-box">
+    <h3>🦅 Про виховників</h3>
+    <ul class="insight-list">
+      <li><strong>Братчиків/сестричок побільшало на 42</strong> — активне залучення молодших виховників</li>
+      <li>Навантаження <strong>8.5→8.6 дитини/виховника</strong> — незначне зростання, ріст іде паралельно</li>
+      <li>Більшість виховників мають вищі пластові ступені (<strong>Пл. сен. праці — 124 особи</strong>)</li>
+      <li>Зросла кількість <strong>Пл. сен. прих.</strong> (+24) — нові досвідчені кадри в роботі з дітьми</li>
+      <li>Кількість гніздових стабільна (74→73): постійна потреба у <strong>підготовці нових гніздових</strong></li>
+    </ul>
+  </div>
+</div>
+
+<!-- TAB 5: SOCIAL -->
+<div class="section" id="tab-social">
+  <div class="section-title">Соціальний профіль</div>
+  <div class="section-desc">Дані 2025 щодо вразливих категорій серед новаків. Дані за 2024 не збирались — наявність бази у 2025 є важливим кроком вперед.</div>
+
+  <div class="social-grid">
+    <div class="social-card">
+      <div class="social-icon">🏠</div>
+      <div>
+        <div class="social-val">90</div>
+        <div class="social-lbl">Внутрішньо переміщених осіб (ВПО)</div>
+      </div>
+    </div>
+    <div class="social-card">
+      <div class="social-icon">🎖️</div>
+      <div>
+        <div class="social-val">449</div>
+        <div class="social-lbl">Діти, чиї батьки — УБД</div>
+      </div>
+    </div>
+    <div class="social-card">
+      <div class="social-icon">💙</div>
+      <div>
+        <div class="social-val">92</div>
+        <div class="social-lbl">Малозабезпечені родини</div>
+      </div>
+    </div>
+    <div class="social-card">
+      <div class="social-icon">🕊️</div>
+      <div>
+        <div class="social-val">25</div>
+        <div class="social-lbl">Батьки-УБД, що загинули на війні</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top:2rem">
+    <div class="chart-card">
+      <div class="chart-title">Соціально вразливі категорії (2025, кількість дітей)</div>
+      <div class="chart-wrap">
+        <canvas id="chartSocial"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="insight-box" style="margin-top:1.5rem">
+    <h3>💛 Важливо для виховників</h3>
+    <ul class="insight-list">
+      <li><strong>449 дітей (16%)</strong> мають батьків-УБД — потребують особливої підтримки та розуміння</li>
+      <li><strong>25 дітей</strong> втратили батька/матір на війні — потребують індивідуальної уваги виховника</li>
+      <li><strong>90 ВПО</strong> — можливо, без місцевих зв'язків, потребують інтеграції в громаду гнізда</li>
+      <li><strong>92 малозабезпечені</strong> — важливо забезпечити доступ до заходів попри фінансові труднощі</li>
+      <li>Загалом <strong>≈656 дітей</strong> (23% від усіх) — з вразливих категорій</li>
+    </ul>
+  </div>
+
+  <div class="chart-grid" style="margin-top:1.5rem">
+    <div class="chart-card">
+      <div class="chart-title">Причини відтоку з УПН</div>
+      <div class="chart-wrap">
+        <canvas id="chartChurn"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Загальний рух членства</div>
+      <div class="chart-wrap">
+        <canvas id="chartMembership"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  УПН — Українська пластова новина &nbsp;·&nbsp; Аналітика 2024–2025 &nbsp;·&nbsp; Дані реєстру УПН
+</div>
+
+<!-- TAB 6: DETAILS -->
+<div class="section" id="tab-details">
+  <div class="section-title">Деталі</div>
+  <div class="section-desc">Поглиблений аналіз: вік дітей по ступенях, ротація виховників у роях, ролі та вік виховницького складу.</div>
+
+  <!-- AGE BY DEGREE -->
+  <div class="chart-grid">
+    <div class="chart-card full">
+      <div class="chart-title">Вік дітей по ступенях (2025) — типовий діапазон</div>
+      <div class="chart-wrap">
+        <canvas id="chartAgeByDeg"></canvas>
+      </div>
+    </div>
+    <div class="chart-card full">
+      <div class="chart-title">Розподіл дітей по вікових групах і ступенях (2025)</div>
+      <div class="chart-wrap tall">
+        <canvas id="chartAgeHeatmap"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="insight-box">
+    <h3>📐 Вік дітей по ступенях — що це означає</h3>
+    <ul class="insight-list">
+      <li><strong>Прихильник</strong>: типово 5–8 років (медіана 6). Найбільша група у 2025 — 668 дітей</li>
+      <li><strong>Орля</strong>: широкий діапазон 6–11 років. Є діти, що зайшли пізніше і ще не пройшли всі ступені</li>
+      <li><strong>Обережне орля</strong>: 8–10 років (медіана 9) — найбільш «однорідна» за віком група</li>
+      <li><strong>Красне орля</strong>: 7–9 років (медіана 8) — активна середня ланка гнізда</li>
+      <li><strong>Сильне орля</strong>: 6–9 років (медіана 7) — помітно зросло у 2025 (+159)</li>
+      <li><strong>Бистре орля</strong>: 9–11 років (медіана 10) — найстарші, готові до переходу в УПЮ</li>
+    </ul>
+  </div>
+
+  <!-- LEADERS ROTATION -->
+  <div class="chart-grid">
+    <div class="chart-card">
+      <div class="chart-title">Ротація виховників у роях (2024→2025)</div>
+      <div class="chart-wrap">
+        <canvas id="chartRotation"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Ролі виховників — багатофункціональність</div>
+      <div class="chart-wrap">
+        <canvas id="chartMultiRole"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- AGE OF LEADERS -->
+  <div class="chart-grid">
+    <div class="chart-card">
+      <div class="chart-title">Вікові групи всіх виховників (2025)</div>
+      <div class="chart-wrap">
+        <canvas id="chartLeaderAge"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Вік виховників по типу структури (стать)</div>
+      <div class="chart-wrap">
+        <canvas id="chartLeaderAgeByGender"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Вік гніздових (2025) по типу гнізда</div>
+      <div class="chart-wrap">
+        <canvas id="chartGnizdoviAge"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Виховники: Гнізда vs Самостійні рої — вік</div>
+      <div class="chart-wrap">
+        <canvas id="chartLeaderSRvsG"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="insight-box">
+    <h3>🦅 Що кажуть дані про виховників</h3>
+    <ul class="insight-list">
+      <li><strong>168 спільних роїв</strong> існують в обох роках. У <strong>23 з них (14%)</strong> змінився склад виховників — здорова ротація</li>
+      <li><strong>35 осіб</strong> одночасно є гніздовими і виховниками — великий обсяг відповідальності</li>
+      <li><strong>6 виховників</strong> ведуть по 2+ рої одночасно (5 — два рої, 1 — чотири рої)</li>
+      <li>Виховники дівочих структур <strong>молодші</strong> в середньому (34.5 р.) ніж хлоп'ячих (37.4 р.)</li>
+      <li>Виховники СР в середньому <strong>молодші на 2 роки</strong> ніж у гніздах (33.9 vs 36.1) — нові лідери</li>
+      <li>Гніздові — досвідченіші: середній вік <strong>39.8 років</strong>, переважно 35–49 рр.</li>
+    </ul>
+  </div>
+</div>
+
+<script>
+// COLORS
+const C = {
+  forest: '#1a3a2a',
+  moss: '#2d6a4f',
+  fern: '#40916c',
+  sage: '#74c69d',
+  mist: '#b7e4c7',
+  amber: '#d4a017',
+  rust: '#c85a17',
+  blue: '#1d4ed8',
+  sky: '#60a5fa',
+};
+
+Chart.defaults.font.family = "'IBM Plex Sans', sans-serif";
+Chart.defaults.color = '#5a7a65';
+Chart.defaults.plugins.legend.labels.boxWidth = 12;
+
+// Shared options
+const barOpts = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: { legend: { display: false } },
+  scales: {
+    x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+    y: { grid: { color: '#edf2f0' }, ticks: { font: { size: 11 } } }
+  }
+};
+
+// ---- TAB 1: OVERVIEW ----
+new Chart('chartMain', {
+  type: 'bar',
+  data: {
+    labels: ['2024', '2025'],
+    datasets: [{
+      label: 'Новаків',
+      data: [2435, 2823],
+      backgroundColor: [C.moss, C.amber],
+      borderRadius: 4,
+    }]
+  },
+  options: { ...barOpts }
+});
+
+new Chart('chartFlow', {
+  type: 'doughnut',
+  data: {
+    labels: ['Залишились з 2024', 'Нові у 2025', 'Перейшли в УПЮ', 'Вибули'],
+    datasets: [{
+      data: [1428, 1395, 682, 325],
+      backgroundColor: [C.fern, C.amber, C.sky, C.rust],
+      borderWidth: 2,
+      borderColor: '#faf8f3'
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'bottom', labels: { font: { size: 11 }, padding: 12 } }
+    }
+  }
+});
+
+new Chart('chartLeadersOverview', {
+  type: 'bar',
+  data: {
+    labels: ['Виховники\n2024', 'Виховники\n2025'],
+    datasets: [
+      { label: 'Братчик/Сестричка', data: [214, 256], backgroundColor: C.fern, borderRadius: 4 },
+      { label: 'Гніздовий/ва', data: [74, 73], backgroundColor: C.amber, borderRadius: 4 },
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: true, position: 'bottom' } },
+    scales: {
+      x: { stacked: true, grid: { display: false } },
+      y: { stacked: true, grid: { color: '#edf2f0' } }
+    }
+  }
+});
+
+new Chart('chartNests', {
+  type: 'bar',
+  data: {
+    labels: ['Кількість структур', 'Активних', 'Новаків 2024', 'Новаків 2025', 'Виховників 2025'],
+    datasets: [
+      {
+        label: 'Гнізда',
+        data: [81, 74, 2088, 2323, 284],
+        backgroundColor: C.moss,
+        borderRadius: 4,
+      },
+      {
+        label: 'Самостійні рої (СР)',
+        data: [74, 59, 349, 504, 61],
+        backgroundColor: C.amber,
+        borderRadius: 4,
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: true, position: 'top' } },
+    scales: {
+      x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+      y: { grid: { color: '#edf2f0' } }
+    }
+  }
+});
+
+// ---- TAB 2: REGIONS ----
+const regions = {
+  labels: ['Львівська','Київ','Івано-Франківська','Київська','Тернопільська','Рівненська','Хмельницька','Закарпатська','Дніпропетровська','Вінницька','Харківська','Житомирська','Чернівецька'],
+  data24: [549,359,316,278,247,130,72,113,73,58,42,51,41],
+  data25: [573,530,398,311,287,138,103,96,71,57,50,43,41],
+};
+
+new Chart('chartRegions', {
+  type: 'bar',
+  data: {
+    labels: regions.labels,
+    datasets: [
+      { label: '2024', data: regions.data24, backgroundColor: C.moss + 'cc', borderRadius: 3 },
+      { label: '2025', data: regions.data25, backgroundColor: C.amber, borderRadius: 3 },
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: true, position: 'top' } },
+    scales: {
+      x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+      y: { grid: { color: '#edf2f0' }, ticks: { font: { size: 11 } } }
+    }
+  }
+});
+
+// SR vs Nests by region (2025)
+const srRegions = {
+  labels: ['Київська','Київ','Львівська','Івано-Франківська','Тернопільська','Рівненська','Хмельницька','Закарпатська','Одеська','Миколаївська'],
+  gnizda: [131, 530, 481, 391, 265, 73, 80, 70, 0, 0],
+  sr: [180, 0, 92, 7, 22, 65, 23, 26, 24, 21],
+};
+
+new Chart('chartRegionsSR', {
+  type: 'bar',
+  data: {
+    labels: srRegions.labels,
+    datasets: [
+      { label: 'Гнізда', data: srRegions.gnizda, backgroundColor: C.moss, borderRadius: 3 },
+      { label: 'Самостійні рої (СР)', data: srRegions.sr, backgroundColor: C.amber, borderRadius: 3 },
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: true, position: 'top' },
+      tooltip: { callbacks: { footer: (items) => items[0].label === 'Київська' ? 'СР — основна форма у приміській Київщині' : '' } }
+    },
+    scales: {
+      x: { stacked: false, grid: { display: false }, ticks: { font: { size: 10 } } },
+      y: { grid: { color: '#edf2f0' } }
+    }
+  }
+});
+
+const leadRegions = {
+  labels: ['Львівська','Київ','Івано-Франківська','Тернопільська','Київська','Закарпатська','Рівненська','Хмельницька','Харківська','Дніпропетровська'],
+  data24: [71,39,39,36,33,12,11,9,7,10],
+  data25: [74,54,48,40,37,15,14,12,8,8],
+};
+
+new Chart('chartRegionsLeaders', {
+  type: 'bar',
+  data: {
+    labels: leadRegions.labels,
+    datasets: [
+      { label: '2024', data: leadRegions.data24, backgroundColor: C.fern + 'cc', borderRadius: 3 },
+      { label: '2025', data: leadRegions.data25, backgroundColor: C.rust, borderRadius: 3 },
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: true, position: 'top' } },
+    scales: {
+      x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+      y: { grid: { color: '#edf2f0' } }
+    }
+  }
+});
+
+// Table
+const tbody = document.getElementById('regionTableBody');
+regions.labels.forEach((r, i) => {
+  const d24 = regions.data24[i], d25 = regions.data25[i];
+  const delta = d25 - d24;
+  const pct = Math.round(delta/d24*100);
+  const maxVal = Math.max(...regions.data25);
+  const barW = Math.round(d25/maxVal*120);
+  const tag = delta >= 0 ? `<span class="tag up">▲ +${delta}</span>` : `<span class="tag down">▼ ${delta}</span>`;
+  tbody.innerHTML += `<tr>
+    <td>${r}</td>
+    <td>${d24}</td>
+    <td>${d25}<span class="bar-mini" style="width:${barW}px"></span></td>
+    <td>${tag}</td>
+    <td style="font-family:'IBM Plex Mono',monospace;font-size:0.8rem;color:${pct>=0?C.moss:C.rust}">${pct>0?'+':''}${pct}%</td>
+  </tr>`;
+});
+
+// ---- TAB 3: DEGREES ----
+const degLabels = ['Прихильник','Обережне орля','Сильне орля','Красне орля','Орля','Неіменований','Бистре орля'];
+const deg24 = [293,521,304,426,316,387+11,179];
+const deg25 = [668,558,463,428,319,298,93];
+const degColors = [C.amber, C.fern, C.moss, C.rust, C.sky, '#9ca3af', '#d97706'];
+
+new Chart('chartDeg24', {
+  type: 'pie',
+  data: {
+    labels: degLabels,
+    datasets: [{ data: deg24, backgroundColor: degColors, borderWidth: 2, borderColor: '#faf8f3' }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { position: 'bottom', labels: { font: { size: 10 }, padding: 8 } } }
+  }
+});
+
+new Chart('chartDeg25', {
+  type: 'pie',
+  data: {
+    labels: degLabels,
+    datasets: [{ data: deg25, backgroundColor: degColors, borderWidth: 2, borderColor: '#faf8f3' }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { position: 'bottom', labels: { font: { size: 10 }, padding: 8 } } }
+  }
+});
+
+new Chart('chartDegCompare', {
+  type: 'bar',
+  data: {
+    labels: degLabels,
+    datasets: [
+      { label: '2024', data: deg24, backgroundColor: C.moss + 'cc', borderRadius: 4 },
+      { label: '2025', data: deg25, backgroundColor: C.amber, borderRadius: 4 },
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: true, position: 'top' } },
+    scales: {
+      x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+      y: { grid: { color: '#edf2f0' } }
+    }
+  }
+});
+
+// ---- TAB 4: LEADERS ----
+new Chart('chartRoles', {
+  type: 'bar',
+  data: {
+    labels: ['Братчик/\nСестричка', 'Гніздовий/ва\n+ Братчик', 'Гніздовий/ва'],
+    datasets: [
+      { label: '2024', data: [214, 41, 33], backgroundColor: C.moss + 'cc', borderRadius: 4 },
+      { label: '2025', data: [256, 35, 38], backgroundColor: C.amber, borderRadius: 4 },
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: true, position: 'top' } },
+    scales: {
+      x: { grid: { display: false } },
+      y: { grid: { color: '#edf2f0' } }
+    }
+  }
+});
+
+new Chart('chartLeaderDeg', {
+  type: 'bar',
+  data: {
+    labels: ['Пл. сен. праці','Пл. сен. прих.','Старший пластун','Пл. сен. дов.','Ст. пл. прих.','Пл. розвідник','Ст. пл. скоб/вірл.'],
+    datasets: [{
+      data: [124, 73, 66, 29, 22, 14, 9],
+      backgroundColor: [C.forest, C.moss, C.fern, C.sage, C.amber, C.rust, C.sky],
+      borderRadius: 4,
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    indexAxis: 'y',
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { color: '#edf2f0' } },
+      y: { grid: { display: false }, ticks: { font: { size: 11 } } }
+    }
+  }
+});
+
+// ---- TAB 5: SOCIAL ----
+new Chart('chartSocial', {
+  type: 'bar',
+  data: {
+    labels: ['Батьки УБД', 'Малозабезпечені', 'ВПО', 'Батьки-УБД загинули'],
+    datasets: [{
+      data: [449, 92, 90, 25],
+      backgroundColor: [C.amber, C.fern, C.sky, C.rust],
+      borderRadius: 4,
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { display: false } },
+      y: { grid: { color: '#edf2f0' } }
+    }
+  }
+});
+
+new Chart('chartChurn', {
+  type: 'doughnut',
+  data: {
+    labels: ['За власним бажанням', 'Неактивність', 'Переїзд', 'Відсутність виховника', 'Перехід в іншу ВЧ', 'Інше'],
+    datasets: [{
+      data: [203, 55, 44, 14, 8, 4],
+      backgroundColor: [C.rust, C.amber, C.sky, C.moss, C.fern, '#9ca3af'],
+      borderWidth: 2,
+      borderColor: '#faf8f3'
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { position: 'bottom', labels: { font: { size: 10 }, padding: 8 } } }
+  }
+});
+
+new Chart('chartMembership', {
+  type: 'bar',
+  data: {
+    labels: ['Були у 2024', 'Нові у 2025', 'Перейшли в УПЮ', 'Вибули', 'Є у 2025'],
+    datasets: [{
+      data: [2435, 1395, -682, -325, 2823],
+      backgroundColor: [C.moss, C.amber, C.fern, C.rust, C.forest],
+      borderRadius: 4,
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+      y: { grid: { color: '#edf2f0' } }
+    }
+  }
+});
+
+
+
+// ---- TAB 6: DETAILS ----
+
+// Age by degree — floating bar (min-max typical range, median dot via scatter overlay)
+new Chart('chartAgeByDeg', {
+  type: 'bar',
+  data: {
+    labels: ['Прихильник','Орля','Обережне\nорля','Красне\nорля','Сильне\nорля','Бистре\nорля'],
+    datasets: [
+      {
+        label: 'Типовий вік (від–до)',
+        data: [
+          [5,8], [6,11], [8,10], [7,9], [6,9], [9,11]
+        ],
+        backgroundColor: [C.amber+'99',C.fern+'99',C.moss+'99',C.rust+'99',C.sky+'99','#9ca3af99'],
+        borderColor: [C.amber,C.fern,C.moss,C.rust,C.sky,'#9ca3af'],
+        borderWidth: 2,
+        borderRadius: 4,
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: (ctx) => {
+            const medians = [6, 7, 9, 8, 7, 10];
+            return `Діапазон: ${ctx.raw[0]}–${ctx.raw[1]} р. | Медіана: ${medians[ctx.dataIndex]} р.`;
+          }
+        }
+      }
+    },
+    scales: {
+      x: { grid: { display: false } },
+      y: {
+        min: 4, max: 12,
+        title: { display: true, text: 'Вік (роки)', font: { size: 11 } },
+        grid: { color: '#edf2f0' },
+        ticks: { stepSize: 1 }
+      }
+    }
+  }
+});
+
+// Age heatmap as grouped bar — children count by age 5-11 per degree
+const ageLabels = ['5 р.','6 р.','7 р.','8 р.','9 р.','10 р.','11 р.'];
+new Chart('chartAgeHeatmap', {
+  type: 'bar',
+  data: {
+    labels: ageLabels,
+    datasets: [
+      { label: 'Прихильник',    data: [129,207,150,94,57,16,1],   backgroundColor: C.amber+'cc',  borderRadius: 3 },
+      { label: 'Орля',          data: [10,129,103,48,19,7,2],    backgroundColor: C.fern+'cc',   borderRadius: 3 },
+      { label: 'Обережне орля', data: [0,0,7,76,347,119,7],      backgroundColor: C.moss+'cc',   borderRadius: 3 },
+      { label: 'Красне орля',   data: [0,4,44,221,137,12,3],     backgroundColor: C.rust+'cc',   borderRadius: 3 },
+      { label: 'Сильне орля',   data: [1,31,212,166,27,2,0],     backgroundColor: C.sky+'cc',    borderRadius: 3 },
+      { label: 'Бистре орля',   data: [0,0,2,5,32,42,6],         backgroundColor: '#9ca3afcc',   borderRadius: 3 },
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { position: 'bottom', labels: { font: { size: 10 }, padding: 8 } } },
+    scales: {
+      x: { grid: { display: false } },
+      y: { grid: { color: '#edf2f0' }, title: { display: true, text: 'Кількість дітей', font: { size: 11 } } }
+    }
+  }
+});
+
+// Rotation
+new Chart('chartRotation', {
+  type: 'doughnut',
+  data: {
+    labels: ['Склад не змінився (145 роїв)', 'Склад змінився (23 рої)'],
+    datasets: [{
+      data: [145, 23],
+      backgroundColor: [C.fern, C.amber],
+      borderWidth: 2, borderColor: '#faf8f3'
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'bottom', labels: { font: { size: 11 }, padding: 10 } },
+      tooltip: { callbacks: { label: (ctx) => `${ctx.label}: ${ctx.raw} з 168 спільних роїв` } }
+    }
+  }
+});
+
+// Multi-role
+new Chart('chartMultiRole', {
+  type: 'bar',
+  data: {
+    labels: ['Тільки братчик/\nсестричка', 'Одночасно\nгніздовий/ва', 'Ведуть 2+\nрої'],
+    datasets: [
+      { label: '2024', data: [214, 41, 8], backgroundColor: C.moss+'cc', borderRadius: 4 },
+      { label: '2025', data: [256, 35, 6], backgroundColor: C.amber, borderRadius: 4 },
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: true, position: 'top' } },
+    scales: {
+      x: { grid: { display: false } },
+      y: { grid: { color: '#edf2f0' } }
+    }
+  }
+});
+
+// Leader age groups
+new Chart('chartLeaderAge', {
+  type: 'bar',
+  data: {
+    labels: ['15-19','20-24','25-29','30-34','35-39','40-49','50+'],
+    datasets: [{
+      data: [43,20,10,51,86,91,20],
+      backgroundColor: [C.mist,C.sage,C.fern,C.moss,C.forest,C.forest,C.night],
+      borderRadius: 4
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false },
+      tooltip: { callbacks: { label: ctx => `${ctx.raw} виховників` } }
+    },
+    scales: {
+      x: { grid: { display: false } },
+      y: { grid: { color: '#edf2f0' }, title: { display: true, text: 'Виховників', font: { size: 11 } } }
+    }
+  }
+});
+
+// Leader age by nest gender
+new Chart('chartLeaderAgeByGender', {
+  type: 'bar',
+  data: {
+    labels: ['15-19','20-24','25-29','30-34','35-39','40-49','50+'],
+    datasets: [
+      { label: 'Хлопчачі (хл)', data: [8,2,0,17,24,32,4], backgroundColor: C.moss, borderRadius: 3 },
+      { label: 'Дівочі (дів)',   data: [19,13,4,15,35,33,5], backgroundColor: C.rust, borderRadius: 3 },
+      { label: 'Мішані (міш)',   data: [8,2,3,7,10,16,6], backgroundColor: C.amber, borderRadius: 3 },
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position: 'top', labels: { font: { size: 10 }, padding: 8 } } },
+    scales: {
+      x: { grid: { display: false } },
+      y: { grid: { color: '#edf2f0' } }
+    }
+  }
+});
+
+// Гніздові age by nest type
+new Chart('chartGnizdoviAge', {
+  type: 'bar',
+  data: {
+    labels: ['до 20','20-24','25-29','30-34','35-39','40-49','50+'],
+    datasets: [
+      { label: 'Хлопчачі гнізда', data: [0,1,0,3,6,14,3], backgroundColor: C.moss, borderRadius: 3 },
+      { label: 'Дівочі гнізда',   data: [1,4,1,4,8,9,3], backgroundColor: C.rust, borderRadius: 3 },
+      { label: 'Мішані гнізда',   data: [0,2,0,2,3,8,1], backgroundColor: C.amber, borderRadius: 3 },
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position: 'top', labels: { font: { size: 10 }, padding: 8 } } },
+    scales: {
+      x: { grid: { display: false } },
+      y: { grid: { color: '#edf2f0' }, ticks: { stepSize: 2 } }
+    }
+  }
+});
+
+// SR vs Gnizda leaders age
+new Chart('chartLeaderSRvsG', {
+  type: 'bar',
+  data: {
+    labels: ['Гнізда','Самостійні рої (СР)'],
+    datasets: [
+      {
+        label: 'Середній вік',
+        data: [36.1, 33.9],
+        backgroundColor: [C.moss, C.amber],
+        borderRadius: 6,
+      }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { display: false } },
+      y: { min: 30, max: 40, grid: { color: '#edf2f0' },
+        title: { display: true, text: 'Середній вік (роки)', font: { size: 11 } } }
+    }
+  }
+});
+
+// TAB SWITCHING
+function showTab(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  event.target.classList.add('active');
+}
+</script>
+</body>
+</html>
